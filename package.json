@@ -1,0 +1,38 @@
+{
+  "name": "weebly",
+  "version": "1.0.0",
+  "description": "tk Server Manager",
+  "exports": "./index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --no-warnings --loader ts-node/esm index.ts",
+    "docker-run": "docker run weebly",
+    "docker-build": "docker build . -t weebly",
+    "docker-buildAndRun": "npm run docker-build && npm run docker-run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tekks/weebly.git"
+  },
+  "keywords": [
+    "nodejs",
+    "bot",
+    "discord"
+  ],
+  "author": "Tekks",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Tekks/weebly/issues"
+  },
+  "homepage": "https://github.com/Tekks/weebly#readme",
+  "dependencies": {
+    "@discordjs/rest": "^1.0.1",
+    "discord.js": "^14.3.0",
+    "dotenv": "^16.0.1",
+    "lokijs": "^1.5.12",
+    "lowdb": "^3.0.0",
+    "node-fetch": "^3.2.10",
+    "ts-node": "^10.9.1",
+    "uwuifier": "^4.0.5"
+  }
+}
