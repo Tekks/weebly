@@ -1,3 +1,6 @@
 export interface Config {
-    TOKEN: string;
+    Discord: {
+        TOKEN: string;
+        OWNER_ID: string;
+    }
 }

@@ -16,14 +16,19 @@
 For those who would prefer to use our [Docker container](https://hub.docker.com/repository/docker/eritislami/evobot), you may provide values from `config.json` as environment variables.
 
 ```shell
-docker run --name="weebly" -e "TOKEN=<discord-token>"  -e "RECOMMENDATIONS=<link>" ghcr.io/tekks/weebly:latest
+docker run --name="weebly" -e "DC_TOKEN=<discord-token>" ghcr.io/tekks/weebly:latest
 ```
 
 ## 📝 Features & Commands
 
 > Note: The Bot uses only slash-commands {/}
 
+- 🪄 sets up the bot for the text2img and reccomendations commands
+
+`/setup <ai> <recommendations>`
+
 - 📃 set up a list of recommended sereven based on the JSON file. Update will sync all servers.
+- Needs the `setup <recommendations>` command to be run first
 
 `/recommended <add> <remove> <update>`
 
@@ -34,3 +39,8 @@ docker run --name="weebly" -e "TOKEN=<discord-token>"  -e "RECOMMENDATIONS=<link
 - 📷 load a randomized image of an anime girl from  [waifu.pics](https://waifu.pics/)
 
 `/cat`
+
+- 🤖 generates an text based image from kinda scratch with the models from [stable-diffusion](https://github.com/CompVis/stable-diffusion)
+- Needs the `setup <ai>` command to be run first
+
+`/text2img <text> <iterations>`

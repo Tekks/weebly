@@ -1,14 +1,15 @@
 import { ActivityType, Client, Collection, Routes } from "discord.js";
+import { getEmoji } from "../utils/emojiFactory.js";
 import { Command } from "../interfaces/Command.js";
 import { config } from "../utils/config.js";
+import { Emoji } from '../enum/Emoji.js';
+import { Database } from "./database.js";
 import { REST } from "@discordjs/rest";
+import { fileURLToPath } from "url";
 import { readdirSync } from "fs";
 import { join } from "path";
-import { Database } from "./database.js";
-import { fileURLToPath } from "url";
 import path from "path";
-import { getEmoji } from "../utils/emojiFactory.js";
-import { Emoji } from '../enum/Emoji.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,7 @@ export class bot {
 
     public constructor(public client: Client) {
 
-        this.client.login(config.TOKEN);
+        this.client.login(config.Discord.TOKEN);
 
         this.client.on("ready", () => {
             console.log(`Weeb Commander v${process.env.npm_package_version} =>  ${this.client.user?.tag}`);
@@ -31,10 +32,8 @@ export class bot {
             this.importCommands();
             this.onSlashCommand();
         });
-
-        this.client.on("warn", (info) => console.log(info));
-        this.client.on("error", console.error);
     }
+
 
     /**
      * It imports all the commands from the commands folder and then registers them with the Discord
@@ -48,13 +47,13 @@ export class bot {
             const command = await import(`./../commands/${file}`);
             this.commands.set(command.data.name, command);
         }
-        const rest = new REST({ version: "10" }).setToken(config.TOKEN);
+        const rest = new REST({ version: "10" }).setToken(config.Discord.TOKEN);
 
         rest.put(Routes.applicationCommands(this.client.user!.id), {
             body: Array.from(this.commands.values()).map((command) => command.data.toJSON()),
-        })
-            .catch(console.error);
+        }).catch(console.error);
     }
+
 
     /**
      * This function is called when a slash command is entered in the chat window.

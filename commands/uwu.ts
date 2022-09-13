@@ -15,10 +15,6 @@ export const data = new SlashCommandBuilder()
         .setRequired(true)
     );
 
-        
-
-            
-
 export const execute = async (interaction: CommandInteraction) => {
     /// @ts-ignore
     const uwuifier = new Uwuifier({
@@ -33,4 +29,3 @@ export const execute = async (interaction: CommandInteraction) => {
     let tranlsated = uwuifier.uwuifySentence(interaction.options.get('message').value);
 	return interaction.editReply({ content: tranlsated });
 }
-

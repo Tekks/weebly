@@ -1,9 +1,10 @@
-import { ChannelType, ChatInputCommandInteraction, CommandInteractionOption, Message, PermissionFlagsBits, PermissionsBitField, SlashCommandBuilder, TextChannel } from "discord.js"
+import { ChannelType, ChatInputCommandInteraction, CommandInteractionOption, Message, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js"
 import { Emoji } from "../enum/Emoji.js";
 import { getEmoji } from "../utils/emojiFactory.js";
 import { bot } from "../index.js";
-import { ReEntry } from "../interfaces/ReEntry.js";
+import { ReEntry } from "../interfaces/DataModel.js";
 import fetch from "node-fetch";
+
 
 type ServerList = {
     servers: Server[]
@@ -42,7 +43,6 @@ export const data = new SlashCommandBuilder()
 
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
-
     switch (interaction.options.getSubcommand()) {
         case 'add':
             addMessage(interaction);
@@ -56,6 +56,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     }
 };
 
+
 /**
  * It creates a message in a channel
  * @param {ChatInputCommandInteraction} interaction - ChatInputCommandInteraction
@@ -65,16 +66,17 @@ async function addMessage(interaction: ChatInputCommandInteraction) {
     let option: CommandInteractionOption = interaction.options.get('channel');
     let channel: TextChannel = await interaction.guild.channels.cache.find(c => c.id === option.value) as TextChannel;
 
-    if (await bot.db.isGuildListed(interaction.guild.id)) { return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} There is allready a message in this Server!` }); }
+    if (_dbIsGuildListed(interaction.guild.id)) { return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} There is allready a message in this Server!` }); }
 
     let [success, recommendation] = await buildMessage();
     if (!success) { return interaction.editReply({ content: `${getEmoji(Emoji.A_ERROR)} Reccomandation List is not deposited, or not reachable!` }); }
     let message = await channel.send(recommendation).catch(error => { return null });
     if (!message) { return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} Message cannot be send!` }); }
-    bot.db.addMessage({ guildId: interaction.guild.id, channelId: channel.id, messageId: message.id });
+    _dbAddMessage({ guildId: interaction.guild.id, channelId: channel.id, messageId: message.id });
 
     return interaction.editReply({ content: `${getEmoji(Emoji.A_SUCCESS)} Message created.` });
 }
+
 
 /**
  * It deletes a message from a channel.
@@ -82,24 +84,25 @@ async function addMessage(interaction: ChatInputCommandInteraction) {
  * @returns The return value of the function is the return value of the last statement in the function.
  */
 async function removeMessage(interaction: ChatInputCommandInteraction) {
-    if (!bot.db.isGuildListed(interaction.guild.id)) { return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} There is no message in this Server!` }); }
-    let messageObj: ReEntry = await bot.db.getMessage(interaction.guild.id);
+    if (!_dbIsGuildListed(interaction.guild.id)) { return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} There is no message in this Server!` }); }
+    let messageObj: ReEntry = _dbGetMessage(interaction.guild.id);
     let textChannel = bot.client.channels.cache.get(messageObj.channelId)
     textChannel.fetch().then(async (channel) => {
         try {
             let message: Message = await channel.messages.fetch(messageObj.messageId);
             if (await message.delete()) {
-                bot.db.deleteMessage(messageObj);
+                await _dbDeleteMessage(messageObj);
                 return interaction.editReply({ content: `${getEmoji(Emoji.A_SUCCESS)} Message deleted!` });
             } else {
                 return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} Message cannot be deleted! It will be removed from weebly database!` });
             }
         } catch (errors) {
-            bot.db.deleteMessage(messageObj);
+            await _dbDeleteMessage(messageObj);
             return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} Message cannot be found! It will be removed from weebly database!` });
         }
     })
 }
+
 
 /**
  * It fetches all messages from the database, and then edits them with the new recommendation list
@@ -111,7 +114,7 @@ async function updateMessage(interaction: ChatInputCommandInteraction) {
     let [success, recommendation] = await buildMessage();
     if (!success) { return interaction.editReply({ content: `${getEmoji(Emoji.A_ERROR)} Reccomandation List is not deposited, or not reachable!` }); }
 
-    bot.db.getAllMessages().forEach(async (messageObj: ReEntry) => {
+    _dbGetAllMessages().forEach(async (messageObj: ReEntry) => {
         let textChannel = bot.client.channels.cache.get(messageObj.channelId)
         textChannel.fetch().then(async (channel) => {
             try {
@@ -122,8 +125,11 @@ async function updateMessage(interaction: ChatInputCommandInteraction) {
             }
         })
     });
-    return interaction.editReply({ content: `${getEmoji(Emoji.A_SUCCESS)} Recommendations in \`${bot.db.getAllMessages().length}\` Servers updated!` });
+    return interaction.editReply({ content: `${getEmoji(Emoji.A_SUCCESS)} Recommendations in \`${_dbGetAllMessages().length}\` Servers updated!` });
 }
+
+
+
 
 /**
  * It fetches the server list from the API, and if it's successful, it builds a string of the server
@@ -132,7 +138,7 @@ async function updateMessage(interaction: ChatInputCommandInteraction) {
  * second is a string.
  */
 async function buildMessage(): Promise<[boolean, string?]> {
-    if (!process.env.RECOMMENDATIONS) { return [false] }
+    if (!_dbGetRecommendations()) { return [false] }
     let response = await fetchServerList().catch(() => { return });
 
     if (!response) { return [false] }
@@ -147,8 +153,6 @@ async function buildMessage(): Promise<[boolean, string?]> {
     })
     serverListString += `\n_ _`
     return [true, serverListString];
-
-
 }
 
 
@@ -159,11 +163,37 @@ async function buildMessage(): Promise<[boolean, string?]> {
  */
 function fetchServerList(): Promise<ServerList> {
     return new Promise((resolve, reject) => {
-        fetch(process.env.RECOMMENDATIONS)
+        fetch(_dbGetRecommendations())
             .then(res => res.json()
                 .then(json => resolve(json as ServerList))
                 .catch(error => { return reject(error) }))
             .catch(error => { return reject(error) });
     })
+}
 
+// Database Stuff
+function _dbIsGuildListed(guildId: string): boolean {
+    return bot.db.getData('reEntries').some(entry => entry.guildId === guildId);
+}
+
+async function _dbDeleteMessage(entry: ReEntry) {
+    bot.db.setData('reEntries', bot.db.getData('reEntries').filter(e => e !== entry))
+    await bot.db.rwDb();
+}
+
+function _dbGetMessage(guildId: string): ReEntry {
+    return bot.db.getData('reEntries').find(entry => entry.guildId === guildId);
+}
+
+async function _dbAddMessage(entry: ReEntry) {
+    bot.db.setData('reEntries', [...bot.db.getData('reEntries'), entry]);
+    await bot.db.rwDb();
+}
+
+function _dbGetAllMessages(): ReEntry[] {
+    return bot.db.getData('reEntries') || [];
+}
+
+function _dbGetRecommendations(): any {
+    return bot.db.getData("config")?.recommendations?.url || null;
 }
