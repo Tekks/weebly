@@ -13,7 +13,7 @@
 
 ## 🐬 Docker Configuration
 
-For those who would prefer to use our [Docker container](https://hub.docker.com/repository/docker/eritislami/evobot), you may provide values from `config.json` as environment variables.
+This bot can be run directly from shell. I recomend to use the given docker image to run it. There is only one environement variable u need to provide, the Discord Bot Token ( First part od the requirements )
 
 ```shell
 docker run --name="weebly" -e "DC_TOKEN=<discord-token>" ghcr.io/tekks/weebly:latest
@@ -27,7 +27,7 @@ docker run --name="weebly" -e "DC_TOKEN=<discord-token>" ghcr.io/tekks/weebly:la
 
 `/setup <ai> <recommendations>`
 
-- 📃 set up a list of recommended sereven based on the JSON file. Update will sync all servers.
+- 📃 set up a list of recommended servers based on the JSON file. Update will sync all servers.
 - Needs the `setup <recommendations>` command to be run first
 
 `/recommended <add> <remove> <update>`
