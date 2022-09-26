@@ -22,10 +22,16 @@ export const data = new SlashCommandBuilder()
 		.setRequired(true)
 	).addIntegerOption(option => option
 		.setName('num_inference_steps')
-		.setDescription('Number of denoising steps (minimum: 1; maximum: 150)')
+		.setDescription('Number of denoising steps (minimum: 1; maximum: 500) (default 100)')
 		.setRequired(true)
 		.setMinValue(1)
-		.setMaxValue(150)
+		.setMaxValue(500)
+	).addNumberOption(option => option
+		.setName('guidance_scale')
+		.setDescription('Scale for classifier-free guidance (minimum: 1; maximum: 20) (default 7.5)')
+		.setRequired(true)
+		.setMinValue(1)
+		.setMaxValue(20)
 	);
 
 export const execute = async (interaction: CommandInteraction) => {
@@ -39,6 +45,7 @@ export const execute = async (interaction: CommandInteraction) => {
 			"version": pVars.version, "input": {
 				"prompt": interaction.options.get('message').value,
 				"num_inference_steps": interaction.options.get('num_inference_steps').value,
+				"guidance_scale": interaction.options.get('guidance_scale').value
 			}
 		})
 	})
