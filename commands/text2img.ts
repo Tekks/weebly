@@ -6,7 +6,7 @@ import { bot } from '../index.js';
 
 const pVars = {
 	endpoint: 'https://api.replicate.com/v1/predictions',
-	version: 'a9758cbfbd5f3c2094457d996681af52552901775aa2d6dd0b17fd15df959bef'
+	version: '8abccf52e7cba9f6e82317253f4a3549082e966db5584e92c808ece132037776'
 }
 
 export const options = {
