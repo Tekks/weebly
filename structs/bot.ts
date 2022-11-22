@@ -6,7 +6,7 @@ import { Emoji } from '../enum/Emoji.js';
 import { Database } from "./database.js";
 import { REST } from "@discordjs/rest";
 import { fileURLToPath } from "url";
-import { readdirSync } from "fs";
+import { readdirSync, openSync, unlinkSync, existsSync } from "fs";
 import { join } from "path";
 import path from "path";
 
@@ -40,6 +40,16 @@ export class bot {
      * API
      */
     private async importCommands() {
+        var isFirstStart = false;
+        try {
+            if (existsSync(join(__dirname, "../.lockfile"))) {
+                unlinkSync(join(__dirname, "../.lockfile"));
+                isFirstStart = true;
+            }
+        } catch (error) {}
+
+        if (!isFirstStart) { return; }
+        console.log(`Loading Commands...`);
         const commands = readdirSync(join(__dirname, "..", "commands")).filter(
             (file) => file.endsWith(".ts")
         );
