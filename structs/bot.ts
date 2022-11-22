@@ -40,6 +40,16 @@ export class bot {
      * API
      */
     private async importCommands() {
+        console.log(`Loading Commands...`);
+
+        const commands = readdirSync(join(__dirname, "..", "commands")).filter(
+            (file) => file.endsWith(".ts")
+        );
+        for (const file of commands) {
+            const command = await import(`./../commands/${file}`);
+            this.commands.set(command.data.name, command);
+        }
+
         var isFirstStart = false;
         try {
             if (existsSync(join(__dirname, "../.lockfile"))) {
@@ -49,16 +59,10 @@ export class bot {
         } catch (error) {}
 
         if (!isFirstStart) { return; }
-        console.log(`Loading Commands...`);
-        const commands = readdirSync(join(__dirname, "..", "commands")).filter(
-            (file) => file.endsWith(".ts")
-        );
-        for (const file of commands) {
-            const command = await import(`./../commands/${file}`);
-            this.commands.set(command.data.name, command);
-        }
+        
+        console.log(`Setup interface for the first time...`)
+        
         const rest = new REST({ version: "10" }).setToken(config.Discord.TOKEN);
-
         rest.put(Routes.applicationCommands(this.client.user!.id), {
             body: Array.from(this.commands.values()).map((command) => command.data.toJSON()),
         }).catch(console.error);
