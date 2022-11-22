@@ -1,17 +1,15 @@
 import { AttachmentBuilder, CommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { Emoji } from '../enum/Emoji.js';
 import { getEmoji } from '../utils/emojiFactory.js';
-import async from 'async'
 import { bot } from '../index.js';
+import async from 'async'
 
 const pVars = {
 	endpoint: 'https://api.replicate.com/v1/predictions',
 	version: '8abccf52e7cba9f6e82317253f4a3549082e966db5584e92c808ece132037776'
 }
 
-export const options = {
-	ephemeral: false
-}
+export const options = { ephemeral: false }
 
 export const data = new SlashCommandBuilder()
 	.setName('text2img')
@@ -20,18 +18,15 @@ export const data = new SlashCommandBuilder()
 		.setName('message')
 		.setDescription('The nonsense to convert.')
 		.setRequired(true)
-	).addIntegerOption(option => option
-		.setName('num_inference_steps')
-		.setDescription('Number of denoising steps (minimum: 1; maximum: 500) (default 100)')
+	).addStringOption(option => option
+		.setName('quality')
+		.setDescription('The quality of the image. Higher quality means longer processing time.')
 		.setRequired(true)
-		.setMinValue(1)
-		.setMaxValue(500)
-	).addNumberOption(option => option
-		.setName('guidance_scale')
-		.setDescription('Scale for classifier-free guidance (minimum: 1; maximum: 20) (default 7.5)')
-		.setRequired(true)
-		.setMinValue(1)
-		.setMaxValue(20)
+		.addChoices(
+			{ name: 'Low ( fastest )', value: '50' },
+			{ name: 'Medium', value: '100' },
+			{ name: 'High ( slowest )', value: '250' }
+		)
 	);
 
 export const execute = async (interaction: CommandInteraction) => {
@@ -44,8 +39,8 @@ export const execute = async (interaction: CommandInteraction) => {
 		body: JSON.stringify({
 			"version": pVars.version, "input": {
 				"prompt": interaction.options.get('message').value,
-				"num_inference_steps": interaction.options.get('num_inference_steps').value,
-				"guidance_scale": interaction.options.get('guidance_scale').value
+				"num_inference_steps": interaction.options.get('quality').value,
+				"guidance_scale": 7
 			}
 		})
 	})
