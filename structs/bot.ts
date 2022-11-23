@@ -31,6 +31,8 @@ export class bot {
 
             this.importCommands();
             this.onSlashCommand();
+
+            console.log(`Ready!`);
         });
     }
 
@@ -75,7 +77,8 @@ export class bot {
     private async onSlashCommand() {
         this.client.on("interactionCreate", async (interaction) => {
             if (!interaction.isChatInputCommand()) { return; }
-
+            
+            console.log(`${interaction.commandName} | ${interaction.user.tag} | ${interaction.guild ? "guild" : "dm"} ${interaction.guild ? '| ' + interaction.guild.name + ' | ' + interaction.channel.name : ''}`);
             const command = this.commands.get(interaction.commandName);
             if (!command) { await interaction.reply({ content: `${getEmoji(Emoji.A_ERROR)} Command not found.`, ephemeral: true }); return; }
 
@@ -87,7 +90,6 @@ export class bot {
                 console.error(error);
                 await interaction.editReply({ content: `${getEmoji(Emoji.A_ERROR)} An error occurred while executing this command.` });
             }
-            return;
         });
     }
 }
