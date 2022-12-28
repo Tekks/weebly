@@ -6,7 +6,7 @@ import async from 'async'
 
 const pVars = {
 	endpoint: 'https://api.replicate.com/v1/predictions',
-	version: '8abccf52e7cba9f6e82317253f4a3549082e966db5584e92c808ece132037776'
+	version: 'f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1'
 }
 
 export const options = { ephemeral: false }

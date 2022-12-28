@@ -1,6 +1,6 @@
 {
   "name": "weebly",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "tk Server Manager",
   "exports": "./index.js",
   "type": "module",
