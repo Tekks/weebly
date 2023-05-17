@@ -2,11 +2,11 @@ import { AttachmentBuilder, CommandInteraction, SlashCommandBuilder } from 'disc
 import { Emoji } from '../enum/Emoji.js';
 import { getEmoji } from '../utils/emojiFactory.js';
 import { bot } from '../index.js';
-import async from 'async'
+import async from 'async';
 
 const pVars = {
 	endpoint: 'https://api.replicate.com/v1/predictions',
-	version: 'f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1'
+	version: 'db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf'
 }
 
 export const options = { ephemeral: false }
@@ -37,13 +37,15 @@ export const execute = async (interaction: CommandInteraction) => {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${_dbGetAiApiKey()}` },
 		body: JSON.stringify({
-			"version": pVars.version, "input": {
+			"version": pVars.version,
+			"input": {
 				"prompt": interaction.options.get('message').value,
-				"num_inference_steps": interaction.options.get('quality').value,
+				"num_inference_steps": parseInt(interaction.options.get('quality').value as string),
 				"guidance_scale": 7
 			}
 		})
 	})
+
 	let data = await response.json();
 	if (data.status !== 'starting') { return sendError(interaction) }
 	let result = await async.retry({ times: 30, interval: 5000 }, checkImageProcess.bind(data.urls.get))
@@ -51,9 +53,8 @@ export const execute = async (interaction: CommandInteraction) => {
 	if (result == "NSFW") {
 		return sendError(interaction, "NSFW")
 	}
-	if (result == null) {
-		return sendError(interaction)
-	}
+
+	if (result == null) { return sendError(interaction) }
 
 	return interaction.editReply({ files: [new AttachmentBuilder(result.output[0])] });
 }
@@ -98,4 +99,3 @@ function _dbGetAiApiKey(): any {
 function _dbGetAiEnabled(): boolean {
 	return bot.db.getData("config")?.ai?.enabled || false;
 }
-

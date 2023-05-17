@@ -35,7 +35,6 @@ export class Database {
         if (this.db.data?.reEntries === undefined) { dbObject.reEntries = []; }
         if (this.db.data?.config === undefined) { dbObject.config = {} as Config; }
 
-
         if (Object.keys(dbObject).length !== 0) {
             this.db.data = { ...this.db.data, ...dbObject };
         }

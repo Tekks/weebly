@@ -26,13 +26,13 @@
   },
   "homepage": "https://github.com/Tekks/weebly#readme",
   "dependencies": {
-    "@discordjs/rest": "^1.3.0",
+    "@discordjs/rest": "^1.7.1",
     "async": "^3.2.4",
-    "discord.js": "^14.6.0",
+    "discord.js": "^14.11.0",
     "dotenv": "^16.0.3",
     "lokijs": "^1.5.12",
-    "lowdb": "^3.0.0",
-    "node-fetch": "^3.2.10",
+    "lowdb": "^6.0.1",
+    "node-fetch": "^3.3.1",
     "ts-node": "^10.9.1",
     "uwuifier": "^4.0.5"
   }
