@@ -1,5 +1,6 @@
 import { DataModel, Config } from '../interfaces/DataModel.js';
-import { Low, JSONFile } from 'lowdb';
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb/node';
 import fs from 'fs';
 
 
@@ -23,7 +24,8 @@ export class Database {
      * It checks if the database has a property called reEntries, if it doesn't, it creates it.
      */
     public async init() {
-        this.db = new Low(new JSONFile<DataModel>('db/db.json'));
+        // this.db = new Low(new JSONFile<DataModel>('db/db.json'));
+        this.db = new Low(new JSONFile('db/db.json'), { reEntries: [], config: {} as Config })
 
         await this.db.read();
 
