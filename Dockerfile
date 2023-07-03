@@ -1,7 +1,4 @@
-FROM node:18.7.0
-
-RUN apt-get update && \
-	apt-get purge -y --auto-remove
+From node:20.3.1-alpine
 
 COPY . /usr/app
 WORKDIR /usr/app
