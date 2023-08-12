@@ -6,7 +6,7 @@ import async from 'async';
 
 const pVars = {
 	endpoint: 'https://api.replicate.com/v1/predictions',
-	version: 'db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf'
+	version: 'ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4'
 }
 
 export const options = { ephemeral: false }
@@ -41,7 +41,7 @@ export const execute = async (interaction: CommandInteraction) => {
 			"input": {
 				"prompt": interaction.options.get('message').value,
 				"num_inference_steps": parseInt(interaction.options.get('quality').value as string),
-				"guidance_scale": 7
+				"guidance_scale": 7.5
 			}
 		})
 	})
