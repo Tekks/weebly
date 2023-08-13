@@ -1,4 +1,4 @@
-import { ChannelType, ChatInputCommandInteraction, CommandInteractionOption, Message, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js"
+import { ChannelType, ChatInputCommandInteraction, CommandInteractionOption, EmbedBuilder, EmbedField, Message, PermissionFlagsBits, SlashCommandBuilder, TextChannel } from "discord.js"
 import { Emoji } from "../enum/Emoji.js";
 import { getEmoji } from "../utils/emojiFactory.js";
 import { bot } from "../index.js";
@@ -70,7 +70,7 @@ async function addMessage(interaction: ChatInputCommandInteraction) {
 
     let [success, recommendation] = await buildMessage();
     if (!success) { return interaction.editReply({ content: `${getEmoji(Emoji.A_ERROR)} Reccomandation List is not deposited, or not reachable!` }); }
-    let message = await channel.send(recommendation).catch(error => { return null });
+    let message = await channel.send({ content: "", embeds: [recommendation] }).catch(error => { return null });
     if (!message) { return interaction.editReply({ content: `${getEmoji(Emoji.A_FAILED)} Message cannot be send!` }); }
     _dbAddMessage({ guildId: interaction.guild.id, channelId: channel.id, messageId: message.id });
 
@@ -115,15 +115,17 @@ async function updateMessage(interaction: ChatInputCommandInteraction) {
     if (!success) { return interaction.editReply({ content: `${getEmoji(Emoji.A_ERROR)} Reccomandation List is not deposited, or not reachable!` }); }
 
     _dbGetAllMessages().forEach(async (messageObj: ReEntry) => {
-        let textChannel = bot.client.channels.cache.get(messageObj.channelId)
-        textChannel.fetch().then(async (channel) => {
-            try {
-                let message: Message = await channel.messages.fetch(messageObj.messageId);
-                message.edit(recommendation);
-            } catch (error) {
-                console.log(error);
-            }
-        })
+        let textChannel = bot.client.channels.cache.get(messageObj.channelId);
+        if (!textChannel || textChannel.type !== ChannelType.GuildText) { await _dbDeleteMessage(messageObj); return; }
+
+        const fetchedChannel = await textChannel.fetch();
+        if (!fetchedChannel) { await _dbDeleteMessage(messageObj); return; }
+        try{
+            const fetchedMessage = await fetchedChannel.messages.fetch(messageObj.messageId);
+            fetchedMessage.edit({ content: "", embeds: [recommendation] });
+        } catch (errors) {
+            await _dbDeleteMessage(messageObj);
+        }
     });
     return interaction.editReply({ content: `${getEmoji(Emoji.A_SUCCESS)} Recommendations in \`${_dbGetAllMessages().length}\` Servers updated!` });
 }
@@ -137,22 +139,32 @@ async function updateMessage(interaction: ChatInputCommandInteraction) {
  * @returns A promise that resolves to an array of two elements. The first element is a boolean, the
  * second is a string.
  */
-async function buildMessage(): Promise<[boolean, string?]> {
+async function buildMessage(): Promise<[boolean, EmbedBuilder?]> {
     if (!_dbGetRecommendations()) { return [false] }
     let response = await fetchServerList().catch(() => { return });
-
     if (!response) { return [false] }
 
     let serverList: ServerList = response;
 
     if (serverList.servers.length == 0) { return [false] }
 
-    let serverListString: string = "";
+    const embed = new EmbedBuilder()
+        .setTitle("Server Recommendations")
+        .setDescription("Here is a list of servers that I recommend you to join")
+        .setColor(0x00FF00)
+        .setTimestamp(new Date())
+        .setFooter({ text: "Server Recommendations", iconURL: bot.client.user.avatarURL() })
+
+
+    const serverListFields: EmbedField[] = [];
+
+
     serverList.servers.forEach(server => {
-        serverListString += `**${server.name}**\n${server.description}\n${server.url}\n\n`;
+        // serverListString += `**${server.name}**\n${server.description}\n<${server.url}>\n\n`;
+        serverListFields.push({ name: server.name, value: `${server.description}\n<${server.url}>`, inline: false });
     })
-    serverListString += `\n_ _`
-    return [true, serverListString];
+    embed.addFields(serverListFields);
+    return [true, embed];
 }
 
 
